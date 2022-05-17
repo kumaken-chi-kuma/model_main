@@ -27,10 +27,15 @@ class Localize {
  public:
   Localize(MotorIo* motor_io);
   void Update();
-  // double distance_;
+  double distance_ = 0;
 
  private:
   MotorIo* motor_io_;
+  const int8_t R = 45;
+  const int8_t D = 126;
+  double theta_wa = 0;
+  double x = 0;
+  double y = 0;
 };
 
 #endif  // ETRC22_ETRC_INFO_H_

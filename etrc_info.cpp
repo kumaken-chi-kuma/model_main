@@ -79,4 +79,17 @@ Localize::Localize(MotorIo* motor_io)
 }
 
 void Localize::Update() {
+  double Ll = R * motor_io_->counts_l_ * M_PI / 180;
+  double Lr = R * motor_io_->counts_r_ * M_PI / 180;
+
+  double theta = (Lr - Ll) / D;
+  theta_wa += theta;
+  double A = (Lr + Ll) / 2 * (1 - 0);
+  double dx = A * cos(theta_wa + theta / 2);
+  double dy = A * sin(theta_wa + theta / 2);
+  double dd = sqrt(dx * dx + dy * dy);
+
+  // x += dx;
+  // y += dy;
+  distance_ += dd;
 }
