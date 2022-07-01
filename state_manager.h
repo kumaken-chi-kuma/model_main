@@ -16,18 +16,17 @@ class TimeAttacker {
   TimeAttacker(DrivingManager* driving_manager, bool is_Lcourse);
   void Update();
   bool is_completed = false;
+
  private:
   void SetTimeAttackDriveParam(bool is_Lcourse);
   DrivingManager* driving_manager_;
-  DrivingParam timeAttackDriveParams[100] = {};
-  int8_t currParamIndex = 0;
-  int8_t paramNum = 0;
 };
 
 class BonusGetter {
  public:
   BonusGetter(DrivingManager* driving_manager, bool is_Lcourse);
   void Update();
+
  private:
   DrivingManager* driving_manager_;
 };
@@ -36,7 +35,7 @@ class StateManager {
  public:
   StateManager(TimeAttacker* time_attacker, BonusGetter* bonus_getter, TestRunner* test_runner);
   void Update();
-  
+
  private:
   void TimeAttack();
   void GetBonus();

@@ -11,41 +11,27 @@ const DrivingParam kRcourseTimeAttackParams[kRcourseParamsNum] = {
   { kGoForward, 10, { }, kDistanceEnd, kInvalidColor, 300, false},
 };
 
-TimeAttacker::TimeAttacker(DrivingManager* driving_manager, bool is_Lcourse) 
+TimeAttacker::TimeAttacker(DrivingManager* driving_manager, bool is_Lcourse)
     : driving_manager_(driving_manager) {
   SetTimeAttackDriveParam(is_Lcourse);
 }
 
 void TimeAttacker::SetTimeAttackDriveParam(bool is_Lcourse_) {
   if (is_Lcourse_) {
-    paramNum = kLcourseParamsNum;
-
-    for (int i=0; i<paramNum; i++) {
-      timeAttackDriveParams[i] = kLcourseTimeAttackParams[i];
+    for (int i=0; i<kLcourseParamsNum; ++i) {
+      driving_manager_->AddDrivingParam(kLcourseTimeAttackParams[i]);
     }
-  } else {
-    paramNum = kRcourseParamsNum;
 
-    for (int i=0; i<paramNum; i++) {
-      timeAttackDriveParams[i] = kRcourseTimeAttackParams[i];
+  } else {
+    for (int i = 0; i<kRcourseParamsNum; ++i) {
+      driving_manager_->AddDrivingParam(kRcourseTimeAttackParams[i]);
     }
   }
 }
 
 void TimeAttacker::Update() {
-  DrivingParam& curr_param = timeAttackDriveParams[currParamIndex];
-  if (!curr_param.is_started) {
-    driving_manager_->SetDriveParam(curr_param);
-    curr_param.is_started = true;
-  }
-
   driving_manager_->Update();
-
-  if (driving_manager_->is_satisfied) {
-    currParamIndex += 1;
-  }
-
-  if (currParamIndex >= paramNum) {
+  if (driving_manager_->DrivingParamsEmpty()) {
     is_completed = true;
   }
 }

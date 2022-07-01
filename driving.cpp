@@ -108,8 +108,9 @@ void EndCondition::SetParam(End end_type, Color end_color, float end_threshold) 
   end_threshold_ = end_threshold;
   end_state_ = false;
 
-  // if (end_type_ == kDistanceEnd) {
-  //   ref_distance_ = localize_->distance_;
+  if (end_type_ == kDistanceEnd) {
+     ref_distance_ = localize_->distance_;
+  }
   // } else if (end_type_ == kThetaEnd) {
   //   ref_theta_ = localize_->pose_.theta;
   // }
@@ -148,22 +149,38 @@ DrivingManager::DrivingManager(BasicDriver* basic_driver, LineTracer* line_trace
 }
 
 void DrivingManager::Update() {
-  if (is_satisfied) {
+  if (driving_params_.size() <= 0) {
     return;
+  }
+
+  DrivingParam& curr_param = driving_params_.front();
+  if (!curr_param.is_started) {
+    SetMoveParam(curr_param);
+    SetEndParam(curr_param);
+    curr_param.is_started = true;
   }
 
   Drive(curr_param);
 
   if (end_condition_->IsSatisfied()) {
-    is_satisfied = true;
+    curr_param.is_finished = true;
+  }
+
+  if (curr_param.is_finished) {
+    driving_params_.pop_front();
+  }
+
+  if (driving_params_.empty()) {
+    basic_driver_->Stop();
   }
 }
 
-void DrivingManager::SetDriveParam(DrivingParam param) {
-  is_satisfied = false;
-  curr_param = param;
-  SetMoveParam(curr_param);
-  SetEndParam(curr_param);
+void DrivingManager::AddDrivingParam(DrivingParam param) {
+  driving_params_.push_back(param);
+}
+
+bool DrivingManager::DrivingParamsEmpty() {
+  return driving_params_.empty();
 }
 
 void DrivingManager::SetMoveParam(DrivingParam& param) {

@@ -2,12 +2,14 @@
 #define ETRC22_TEST_RUNNER_H_
 
 #include "driving.h"
+#include <list>
 
 class TestRunner {
  public:
   TestRunner(DrivingManager* driving_manager);
   void Update();
   bool is_completed = false;
+
  private:
   void SetTestRunParam();
   DrivingManager* driving_manager_;

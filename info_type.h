@@ -58,6 +58,7 @@ struct DrivingParam {
   Color end_color;
   float end_threshold;
   bool is_started;
+  bool is_finished;
 };
 
 #endif  // ETRC22_INFO_TYPE_H_

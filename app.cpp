@@ -1,9 +1,9 @@
-#include "app.h"
-
-#include "device_io.h"
-#include "etrc_info.h"
 #include "driving.h"
 #include "test_runner.h"
+
+#include "app.h"
+#include "device_io.h"
+#include "etrc_info.h"
 #include "game_play.h"
 #include "state_manager.h"
 
