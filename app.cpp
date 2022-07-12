@@ -1,10 +1,10 @@
-#include "driving.h"
-#include "test_runner.h"
+#include "etrc_info.h"
 
 #include "app.h"
 #include "device_io.h"
-#include "etrc_info.h"
+#include "driving.h"
 #include "game_play.h"
+#include "test_runner.h"
 #include "state_manager.h"
 
 static const bool kLcourse = true;
@@ -96,6 +96,7 @@ void update_info_task(intptr_t unused) {
   motor_io->Update();
   sensor_io->Update();
   luminous->Update();
+  localize->Update();
   camera->Update();
   ext_tsk();
 }
