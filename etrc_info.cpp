@@ -1,12 +1,14 @@
 #include "etrc_info.h"
 
-Luminous::Luminous(SensorIo* sensor_io, Camera* camera)
-    : color_(kInvalidColor), hsv_({0, 0, 0}), sensor_io_(sensor_io), camera_(camera) {
+Luminous::Luminous(SensorIo* sensor_io)
+    : color_(kInvalidColor), hsv_({0, 0, 0}), sensor_io_(sensor_io) {
+      SetColorReference(kInvalidColor, (Hsv){0, 0, 0});//paku
 }
 
 void Luminous::Update() {
   UpdateRgb();
   UpdateHsv();
+  JudgeColor(hsv_);//paku
   UpdateColor();
 }
 
@@ -16,78 +18,231 @@ void Luminous::SetColorReference(Color c, Hsv hsv) {
 
 void Luminous::UpdateRgb() {
   rgb_raw_t val = sensor_io_->color_rgb_raw_;
-
-  rgb_.r = val.r;
-  rgb_.g = val.g;
-  rgb_.b = val.b;
+/////////////////paku//////////////////////
+  int max_r = val.r - MIN_R > 0 ? val.r - MIN_R : 0;
+  int max_g = val.g - MIN_G > 0 ? val.g - MIN_G : 0;
+  int max_b = val.b - MIN_B > 0 ? val.b - MIN_B : 0;
+  rgb_.r = (val.r < MAX_R) ? max_r * 255 / (MAX_R - MIN_R): 255;
+  rgb_.g = (val.g < MAX_G) ? max_g * 255 / (MAX_G - MIN_G): 255;
+  rgb_.b = (val.b < MAX_B) ? max_b * 255 / (MAX_B - MIN_B): 255;
+/////////////////paku//////////////////////
+  // rgb_.r = val.r;
+  // rgb_.g = val.g;
+  // rgb_.b = val.b;
 }
 
 void Luminous::UpdateHsv() {
-  float r = static_cast<float>(rgb_.r);
-  float g = static_cast<float>(rgb_.g);
-  float b = static_cast<float>(rgb_.b);
 
-  float max = r > g ? r : g;
+//////////////////////////paku///////////////////////////
+
+  int r = rgb_.r;
+  int g = rgb_.g;
+  int b = rgb_.b;
+
+  max = r > g ? r : g;
   max = max > b ? max : b;
-  float min = r < g ? r : g;
-  min = min < b ? min : b;
-  float c = max - min;
+  min = r < g ? r : g;
+  min < b ? min : b;
 
-  float h;
-  if (c == 0) {
-    h = -1;
-  } else if (max == r) {
-    h = fmodf(((g - b) / c), 6);
-  } else if (max == g) {
-    h = ((b - r) / c) + 2;
-  } else if (max == b) {
-    h = ((r - g) / c) + 4;
-  } else {
-    h = -1;
-  }
+  int h;
+  int s;
+  int v;
 
-  if (h != -1) {
-    h = 60 * h;
-  }
 
-  float s;
-  if (max == 0) {
-    s = 0;
-  } else {
-    s = c / max;
+  // 色相
+  if(max == min) {
+    h = 0;
+  } else if(r == max) {
+    h = 60 * (g - b) / (max - min);
+  } else if(g == max) {
+    h = 60 * (b - r) / (max - min) + 120;
+  } else if(b == max) {
+    h = 60 * (r - g) / (max - min) + 240;
   }
+  // マイナスの場合の補完
+  h = (h + 360) % 360;
 
-  float v = max;
-  if (v > 100) {
-    v = 100;
-  }
+  // 彩度
+  s = (100 * (max - min)) / max;
+
+  // 明度
+  v = max;
 
   hsv_.h = h;
-  hsv_.s = s * 100;
+  hsv_.s = s;
   hsv_.v = v;
+  // maxが0の場合、黒を返す
+  if(max == 0) {
+    hsv_.h = 0;
+    hsv_.s = 0;
+    hsv_.v = 0;
+  }
+
+  // char str[264];//add
+  // sprintf(str, "  \n", r, g, b);//add
+  // syslog(LOG_NOTICE, str);//add
+//////////////////////paku///////////////////////////
+
+
+  ////////////////////matu///////////////////////////
+  // float r = static_cast<float>(rgb_.r);
+  // float g = static_cast<float>(rgb_.g);
+  // float b = static_cast<float>(rgb_.b);
+
+  // float max = r > g ? r : g;
+  // max = max > b ? max : b;
+  // float min = r < g ? r : g;
+  // min = min < b ? min : b;
+  // float c = max - min;
+
+  // float h;
+  // if (c == 0) {
+  //   h = -1;
+  // } else if (max == r) {
+  //   h = fmodf(((g - b) / c), 6);
+  // } else if (max == g) {
+  //   h = ((b - r) / c) + 2;
+  // } else if (max == b) {
+  //   h = ((r - g) / c) + 4;
+  // } else {
+  //   h = -1;
+  // }
+
+  // if (h != -1) {
+  //   h = 60 * h;
+  // }
+
+  // float s;
+  // if (max == 0) {
+  //   s = 0;
+  // } else {
+  //   s = c / max;
+  // }
+
+  // float v = max;
+
+  // hsv_.h = h;
+  // hsv_.s = s * 100;
+  // hsv_.v = v/2;//change
+  // // char str[264];//add
+  // sprintf(str, " h: %f s: %f v: %f \n",hsv_.h, hsv_.s, hsv_.v);//add
+  // syslog(LOG_NOTICE, str);//add
+  ////////////////////matu///////////////////////////
+}
+
+
+////////////////////////////////paku/////////////////////////////
+Color Luminous::JudgeColor(Hsv _hsv){
+  //明度が極端に低ければ、黒を返す
+  if(_hsv.v < 25){
+    return kBlack;
+  }
+  // 明度が極端に高ければ、白を返す
+  if(min > 250){
+    return kWhite;
+  }
+  // 彩度が低い場合
+  if(_hsv.s < 20) {
+    // 明度が低ければ、黒を返す
+    if(_hsv.v < 170){
+      return kBlack;
+    } 
+    // 明度が高ければ、白を返す
+    return kWhite;
+  }
+
+  if(_hsv.h < MAX_Y_h){
+    return kYellow;
+  }
+  if(_hsv.h < MAX_G_h){
+    return kGreen;
+  }
+  if(_hsv.h < MAX_B_h){
+    return kBlue;
+  }
+  if(_hsv.h < MAX_R_h){
+    return kRed;
+  }
+  return kInvalidColor;
 }
 
 void Luminous::UpdateColor() {
+  char str_[1024];
+  
+  color_ = JudgeColor(hsv_);
+    switch (color_)
+  {
+  case 0:
+    sprintf(str_,"kGreen");
+    break;
+  case 1:
+    sprintf(str_,"kBlack");
+    break;
+  case 2:
+    sprintf(str_,"kRed");
+    break;
+  case 3:
+    sprintf(str_,"kYellow");
+    break;
+  case 4:
+    sprintf(str_,"kBlue");
+    break;
+  case 5:
+    sprintf(str_,"kWhite");
+    break;
+  case 6:
+    sprintf(str_,"kInvalidColor");
+    break;
+  case 7:
+    sprintf(str_,"kColorNum");
+    break;
+  }
+  // char str[256];
+  // sprintf(str, " h: %d s: %d v: %d %s",hsv_.h, hsv_.s, hsv_.v, str_);
+  // syslog(LOG_NOTICE, str);
 }
+////////////////////////////////paku/////////////////////////////
+
+// void Luminous::UpdateColor() {
+// }
 
 Odometry::Odometry(MotorIo* motor_io)
   : motor_io_(motor_io) {
 }
 
 void Odometry::Update() {
-  double Ll = R * motor_io_->counts_l_ * M_PI / 180;
-  double Lr = R * motor_io_->counts_r_ * M_PI / 180;
+  counts_r_ = motor_io_->counts_r_;
+  counts_l_ = motor_io_->counts_l_;
 
-  double theta = (Lr - Ll) / D;
+  curr_index += 1;
+
+  counts_rs[curr_index] = counts_r_;
+  counts_ls[curr_index] = counts_l_;
+
+  double Ll = R * (counts_ls[curr_index] - counts_ls[curr_index - 1]) * M_PI / 180;
+  double Lr = R * (counts_rs[curr_index] - counts_rs[curr_index - 1]) * M_PI / 180;
+
+  theta = (Lr - Ll) / D;
   theta_wa += theta;
   double A = (Lr + Ll) / 2 * (1 - 0);
   double dx = A * cos(theta_wa + theta / 2);
   double dy = A * sin(theta_wa + theta / 2);
   double dd = sqrt(dx * dx + dy * dy);
 
+  before_x = x;
+  before_y = y;
+
   x += dx;
   y += dy;
   distance += dd;
+
+  difference_x = x - before_x;
+  difference_y = y - before_y;
+  direction = atan2(difference_y, difference_x);
+
+  char a[264];
+  sprintf(a, "distance: %f\n", distance);
+  syslog(LOG_NOTICE, a);
 }
 
 // CubicSpline::CubicSpline() {
@@ -269,8 +424,9 @@ Localize::Localize(MotorIo* motor_io) {
 void Localize::Update() {
   odometry_->Update();
   distance_ = odometry_->distance;
+  theta_ = odometry_->theta;
   odometry_x = odometry_->x;
   odometry_y = odometry_->y;
 
-  pure_pursuit_->Update(odometry_x, odometry_y);
+  //pure_pursuit_->Update(odometry_x, odometry_y);
 }

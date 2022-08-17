@@ -14,11 +14,30 @@ const int kCourseParamNum = 23;
 
 class Luminous {
  public:
-  Luminous(SensorIo* sensor_io, Camera* camera);
+  Luminous(SensorIo* sensor_io);
   void Update();
+  Color JudgeColor(Hsv _hsv);//paku
   Color color_;
   Rgb rgb_;
   Hsv hsv_;
+
+//////////////////////paku////////////////////////
+  int max;
+  int min;
+  int MAX_R = 194;
+  int MAX_G = 211;
+  int MAX_B = 222;
+
+  int MIN_R = 9;
+  int MIN_G = 11;
+  int MIN_B = 12;
+
+  int MAX_Y_h = 30;
+  int MAX_G_h = 140;
+  int MAX_B_h = 245;
+  int MAX_R_h = 355;
+//////////////////////paku////////////////////////
+
 
  private:
   void SetColorReference(Color c, Hsv hsv);
@@ -26,8 +45,15 @@ class Luminous {
   void UpdateHsv();
   void UpdateColor();
   SensorIo* sensor_io_;
-  Camera* camera_;
   Hsv color_ref_[kColorNum];
+
+//////////////////////paku////////////////////////
+
+  /////////////////endcondition in bonus/////////////////
+  float color_last = 0;
+  /////////////////endcondition in bonus/////////////////
+
+//////////////////////paku////////////////////////
 };
 
 class Odometry {
@@ -35,14 +61,25 @@ class Odometry {
    Odometry(MotorIo* motor_io);
    void Update();
    double distance = 0;
+   double theta = 0;
    double x = 0;
    double y = 0;
+   double direction = 0;
 
   private:
    MotorIo* motor_io_;
    const int8_t R = 45;
    const int8_t D = 126;
+   int32_t counts_r_;
+   int32_t counts_l_;
+   int curr_index = 0;
+   int32_t counts_rs[100000] = {};
+   int32_t counts_ls[100000] = {};
    double theta_wa = 0;
+   double before_x = 0;
+   double before_y = 0;
+   double difference_x = 0;
+   double difference_y = 0;
 };
 
 class CubicSpline {
@@ -87,6 +124,7 @@ class Localize {
   Localize(MotorIo* motor_io);
   void Update();
   double distance_ = 0;
+  double theta_ = 0;
   double odometry_x = 0;
   double odometry_y = 0;
 

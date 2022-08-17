@@ -53,33 +53,23 @@ void MotorIo::TurnLeft() {
   ev3_motor_steer(EV3_PORT_B, EV3_PORT_C, turn_power, turn_ratio);
 }
 
-void MotorIo::TestRun() {
-  int left_power = 50;
-  int right_power = 50;
-  ev3_motor_set_power(EV3_PORT_C, left_power);
-  ev3_motor_set_power(EV3_PORT_B, right_power);
-}
+
+
 
 SensorIo::SensorIo()
-    : touch_sensor_pressed_(false), back_button_pressed_(false), color_rgb_raw_({0, 0, 0}) {
+    : enter_button_pressed_(false), left_button_pressed_(false), right_button_pressed_(false), color_rgb_raw_({0, 0, 0}) {
   ev3_sensor_config(EV3_PORT_1, TOUCH_SENSOR);
   ev3_sensor_config(EV3_PORT_2, COLOR_SENSOR);
+  ev3_sensor_config(EV3_PORT_3, ULTRASONIC_SENSOR);
 }
 
 SensorIo::~SensorIo() {
 }
 
 void SensorIo::Update() {
-  touch_sensor_pressed_ = ev3_touch_sensor_is_pressed(EV3_PORT_1);
+  ultrasonic_sensor_distance_ = ev3_ultrasonic_sensor_get_distance(EV3_PORT_3);
+  enter_button_pressed_ = ev3_button_is_pressed(ENTER_BUTTON);
+  left_button_pressed_ = ev3_button_is_pressed(LEFT_BUTTON);
+  right_button_pressed_ = ev3_button_is_pressed(RIGHT_BUTTON);
   ev3_color_sensor_get_rgb_raw(EV3_PORT_2, &color_rgb_raw_);
-}
-
-Camera::Camera() {
-
-}
-
-Camera::~Camera() {
-}
-
-void Camera::Update() {
 }

@@ -36,6 +36,8 @@ class LineTracer {
   ~LineTracer();
   void SetParam(Move move_type, int8_t base_power, Gain gain);
   void Run();
+  void Blue_Run();//paku
+  void Vgosa();//matu
   void Stop();
 
  private:
@@ -44,7 +46,16 @@ class LineTracer {
   Move move_type_;
   int8_t base_power_;
   const int8_t line_trace_threshold = 40;
+  const int16_t line_trace_blue_threshold = 160;
   PidControl* pid_control_;
+  ////matu////
+  int curr_in = 0;
+  float mv;
+  float diff[10000]= {};
+  float mv_c[10000]= {};
+  uint64_t secs[100000] = {};
+  uint64_t now_time = 0;
+  ////matu////
 };
 
 class EndCondition {
@@ -62,6 +73,7 @@ class EndCondition {
   bool end_state_;
   float ref_distance_;
   float ref_theta_;
+  int count=0;//matu
 };
 
 class DrivingManager {

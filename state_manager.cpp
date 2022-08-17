@@ -1,8 +1,11 @@
 #include "state_manager.h"
 
-const int kLcourseParamsNum = 1;
+const int kLcourseParamsNum = 3;
 const DrivingParam kLcourseTimeAttackParams[kLcourseParamsNum] = {
-  { kTraceRightEdge, 50, { 0.5, 0, 0 }, kDistanceEnd, kInvalidColor, 1000, false},
+  {kTraceRightEdge, 80, {0.22, 0.013, 0.05}, kDistanceEnd, kInvalidColor, 1000, false},
+  { kTraceLeftEdge, 45, { 0.22, 0, 0 }, kColorEnd, kBlue, 0},
+  // { kTraceRightEdge, 50, { 0.5, 0, 0 }, kDistanceEnd, kInvalidColor, 1000, false},
+  {kStopWheels, 0, { 0, 0, 0 }, kInvalidEnd, kInvalidColor, 0, false},
 };
 
 const int kRcourseParamsNum = 2;
@@ -43,8 +46,8 @@ BonusGetter::BonusGetter(DrivingManager* driving_manager, bool is_Lcourse)
 void BonusGetter::Update() {
 }
 
-StateManager::StateManager(TimeAttacker* time_attacker, BonusGetter* bonus_getter, TestRunner* test_runner)
-    : time_attacker_(time_attacker), bonus_getter_(bonus_getter), test_runner_(test_runner), state_(kTestRun) {
+StateManager::StateManager(TimeAttacker* time_attacker, BonusGetter* bonus_getter)
+    : time_attacker_(time_attacker), bonus_getter_(bonus_getter){
 }
 
 void StateManager::Update() {
@@ -57,9 +60,6 @@ void StateManager::Update() {
       GetBonus();
       break;
 
-    case kTestRun:
-      TestRun();
-      break;
 
     default:
       break;
@@ -75,9 +75,5 @@ void StateManager::TimeAttack() {
 
 void StateManager::GetBonus() {
   bonus_getter_->Update();
-}
-
-void StateManager::TestRun() {
-  test_runner_->Update();
 }
 

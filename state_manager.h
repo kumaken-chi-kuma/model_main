@@ -2,7 +2,6 @@
 #define ETRC22_STATE_MANAGER_H_
 
 #include "driving.h"
-#include "test_runner.h"
 
 enum State {
   kTimeAttack = 0,
@@ -33,16 +32,14 @@ class BonusGetter {
 
 class StateManager {
  public:
-  StateManager(TimeAttacker* time_attacker, BonusGetter* bonus_getter, TestRunner* test_runner);
+  StateManager(TimeAttacker* time_attacker, BonusGetter* bonus_getter);
   void Update();
 
  private:
   void TimeAttack();
   void GetBonus();
-  void TestRun();
   TimeAttacker* time_attacker_;
   BonusGetter* bonus_getter_;
-  TestRunner* test_runner_;
   State state_;
 };
 

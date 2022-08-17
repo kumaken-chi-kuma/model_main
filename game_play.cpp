@@ -1,10 +1,10 @@
 #include "game_play.h"
 
-BingoAgent::BingoAgent(bool kLcourse) {
+Cleaning::Cleaning(bool kLcourse) {
 }
 
-BingoAgent::~BingoAgent() {
+Cleaning::~Cleaning() {
 }
 
-void BingoAgent::SolveBingo() {
+void Cleaning::SolveClean() {
 }

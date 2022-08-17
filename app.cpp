@@ -4,14 +4,14 @@
 #include "device_io.h"
 #include "driving.h"
 #include "game_play.h"
-#include "test_runner.h"
 #include "state_manager.h"
+#include "ev3api.h"
 
-static const bool kLcourse = true;
+
+bool kLcourse = true;
 
 MotorIo* motor_io;
 SensorIo* sensor_io;
-Camera* camera;
 Luminous* luminous;
 Localize* localize;
 WheelsControl* wheels_control;
@@ -21,15 +21,13 @@ EndCondition* end_condition;
 DrivingManager* driving_manager;
 TimeAttacker* time_attacker;
 BonusGetter* bonus_getter;
-TestRunner* test_runner;
-BingoAgent* bingo_agent;
+Cleaning* cleaning;
 StateManager* state_manager;
 
 static void initialize() {
   motor_io = new MotorIo();
   sensor_io = new SensorIo();
-  camera = new Camera();
-  luminous = new Luminous(sensor_io, camera);
+  luminous = new Luminous(sensor_io);
   localize = new Localize(motor_io);
   wheels_control = new WheelsControl(motor_io);
   basic_driver = new BasicDriver(wheels_control);
@@ -38,15 +36,13 @@ static void initialize() {
   driving_manager = new DrivingManager(basic_driver, line_tracer, end_condition);
   time_attacker = new TimeAttacker(driving_manager, kLcourse);
   bonus_getter = new BonusGetter(driving_manager, kLcourse);
-  test_runner = new TestRunner(driving_manager);
-  bingo_agent = new BingoAgent(kLcourse);
-  state_manager = new StateManager(time_attacker, bonus_getter, test_runner);
+  cleaning = new Cleaning(kLcourse);
+  state_manager = new StateManager(time_attacker, bonus_getter);
 }
 
 static void finalize() {
   delete state_manager;
-  delete bingo_agent;
-  delete test_runner;
+  delete cleaning;
   delete bonus_getter;
   delete time_attacker;
   delete driving_manager;
@@ -56,20 +52,45 @@ static void finalize() {
   delete wheels_control;
   delete localize;
   delete luminous;
-  delete camera;
   delete sensor_io;
   delete motor_io;
 }
-
 
 void main_task(intptr_t unused) {
   initialize();
   sta_cyc(UPDATE_INFO_CYC);
 
+/*
+ while (true) {
+   if(ev3_button_is_pressed(button_t LEFT_BUTTON)){
+    break;
+    }
+    else if (ev3_button_is_pressed(button_t RIGHT_BUTTON)){
+      kLcourse = false;
+    }
+  }
+*/
   while (true) {
-    if (sensor_io->touch_sensor_pressed_) break;
+    if (sensor_io->left_button_pressed_) break;
+     else if (sensor_io->right_button_pressed_) {
+       kLcourse = false;
+       break;
+     }
     tslp_tsk(TASK_INTERVAL_DT_MS*1000U);
   }
+
+  // char str[264];
+  // sprintf(str, "%s", kLcourse);
+  // syslog(LOG_NOTICE, str);
+
+  tslp_tsk(TASK_INTERVAL_DT_MS*500000U);
+
+  while (true) {
+    if (sensor_io->ultrasonic_sensor_distance_ > START_URLTRASONIC_DIST_THRESHOLD) break;
+    tslp_tsk(TASK_INTERVAL_DT_MS*1000U);
+  }
+
+
   tslp_tsk(START_INTERVAL_DT_MS*1000U);
 
   sta_cyc(EXEC_ACTION_CYC);
@@ -77,7 +98,7 @@ void main_task(intptr_t unused) {
   tslp_tsk(TASK_INTERVAL_DT_MS*1000U);
 
   while (true) {
-    if (sensor_io->touch_sensor_pressed_) break;
+    if (sensor_io->enter_button_pressed_) break;
     tslp_tsk(100*1000U);
   }
 
@@ -88,6 +109,7 @@ void main_task(intptr_t unused) {
 }
 
 void exec_action_task(intptr_t unused) {
+  localize->Update();
   state_manager->Update();
   ext_tsk();
 }
@@ -96,12 +118,11 @@ void update_info_task(intptr_t unused) {
   motor_io->Update();
   sensor_io->Update();
   luminous->Update();
-  localize->Update();
-  camera->Update();
+  // localize->Update();
   ext_tsk();
 }
 
 void solve_bingo_task(intptr_t unused) {
-  bingo_agent->SolveBingo();
+  cleaning->SolveClean();
   ext_tsk();
 }

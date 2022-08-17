@@ -4,24 +4,10 @@ WheelsControl::WheelsControl(MotorIo* motor_io) : motor_io_(motor_io) {
 }
 
 void WheelsControl::Exec(int8_t target_power_l, int8_t target_power_r) {
-  int8_t curr_power_l = motor_io_->power_l_;
-  if (target_power_l > curr_power_l) {
-    curr_power_l += 1;
-  } else if (target_power_l < curr_power_l) {
-    curr_power_l -= 1;
-  }
-
-  int8_t curr_power_r = motor_io_->power_r_;
-  if (target_power_r > curr_power_r) {
-    curr_power_r += 1;
-  } else if (target_power_r < curr_power_r) {
-    curr_power_r -= 1;
-  }
-
   if (target_power_l == 0 && target_power_r == 0) {
     motor_io_->StopWheels(true);
   } else {
-    motor_io_->SetWheelsPower(curr_power_l, curr_power_r);
+    motor_io_->SetWheelsPower(target_power_l, target_power_r);
   }
 }
 
@@ -82,19 +68,112 @@ void LineTracer::SetParam(Move move_type, int8_t base_power, Gain gain) {
 void LineTracer::Run() {
   float curr_hsv = luminous_->hsv_.v;
   float mv = pid_control_->CalcMv(line_trace_threshold, curr_hsv);
-
+  diff[curr_in] = curr_hsv;
+  mv_c[curr_in] = pid_control_->CalcMv(line_trace_threshold, curr_hsv);
+  curr_in +=1;
+  /////////////////////////////paku//////////////////////////////
   if (move_type_ == kTraceLeftEdge) {
     mv *= -1;
   }
+  get_tim(&now_time);//add
+  secs[curr_in] = now_time;//add
+  int8_t power_l =  static_cast<int8_t>(base_power_ + mv);//add
+  int8_t power_r = static_cast<int8_t>(base_power_ - mv);//add
 
+  wheels_control_->Exec(power_l, power_r);
+  /////////////////////////////paku//////////////////////////////
+
+  //////////////////////////////matu/////////////////////////////
+  // if (move_type_ == kTraceLeftEdge) {
+  //   mv *= -1;
+  // }
+  // get_tim(&now_time);
+  // secs[curr_in] = now_time;
+  // int8_t power_l;
+  // int8_t power_r;
+  
+  // if (move_type_ == kRightcurve){
+  // power_l = static_cast<int8_t>(base_power_ + mv + 40);
+  // power_r = static_cast<int8_t>(base_power_ - mv - 10 );
+  // } else if(move_type_ == kLeftcurve){
+  // power_l = static_cast<int8_t>(base_power_ + mv - 15 );
+  // power_r = static_cast<int8_t>(base_power_ - mv + 40);
+  // }else {
+  // power_l = static_cast<int8_t>(base_power_ + mv);
+  // power_r = static_cast<int8_t>(base_power_ - mv);
+  // }
+  // //  int8_t power_l = static_cast<int8_t>(base_power_ + mv);
+  // //  int8_t power_r = static_cast<int8_t>(base_power_ - mv);
+
+  //  //if (power_l == 0 && power_r == 0) {
+  // //   motor_io_->StopWheels(true);
+  // // } else {
+  // //   motor_io_->SetWheelsPower(power_l, power_r);
+  // // }
+  // wheels_control_->Exec(power_l, power_r);
+  //////////////////////////////matu/////////////////////////////
+}
+
+void LineTracer::Blue_Run() {
+  float curr_hsv = luminous_->hsv_.v;
+  mv = pid_control_->CalcMv(line_trace_blue_threshold, curr_hsv);
+  mv_c[curr_in] = pid_control_->CalcMv(line_trace_threshold, curr_hsv);//add
+  diff[curr_in] = curr_hsv;//add
+  curr_in +=1;//add
+
+
+  if (move_type_ == kTraceBlueLeftEdge) {
+    mv *= -1;
+  }
+  get_tim(&now_time);//add
+  secs[curr_in] = now_time;//add
   int8_t power_l = static_cast<int8_t>(base_power_ + mv);
   int8_t power_r = static_cast<int8_t>(base_power_ - mv);
   wheels_control_->Exec(power_l, power_r);
 }
 
+/////////////matu/////////////
+void LineTracer::Vgosa() {
+  get_tim(&now_time);
+  // char st [256];
+  // FILE* fp = fopen("Gosa1.csv", "w");
+  // for (int i=0; i<curr_in; i++) {
+  //   sprintf(st, "%u, %f, %f\n",secs[i], mv_c[i], diff[i]);
+  //   fprintf(fp, st);
+  // }
+  //  fclose(fp);
+  char str [256];
+  char file_name[64];
+  FILE* fp;
+
+  int i = 1;
+  while(true){
+    snprintf(file_name,sizeof(char)*64,"ETrobo-2022-Ta/data/Gosa%i.csv",i);
+
+    if(fp = fopen(file_name,"r")){
+      fclose(fp);
+    } else {
+      break;
+    }
+    i++;
+  }
+
+  fp = fopen(file_name, "w");
+  sprintf(str, "time ,mv ,diff \n");
+  fprintf(fp, str);
+  for (int i = 0; i < curr_in;  i++) {
+    sprintf(str,"%u, %f, %f\n",secs[i], mv_c[i], diff[i]);
+    fprintf(fp, str);
+  }
+
+  fclose(fp);
+}
+/////////////matu/////////////
+
 void LineTracer::Stop() {
   wheels_control_->Exec(0, 0);
 }
+
 
 EndCondition::EndCondition(Luminous* luminous, Localize* localize)
     : luminous_(luminous), localize_(localize),
@@ -111,9 +190,9 @@ void EndCondition::SetParam(End end_type, Color end_color, float end_threshold) 
   if (end_type_ == kDistanceEnd) {
      ref_distance_ = localize_->distance_;
   }
-  // } else if (end_type_ == kThetaEnd) {
-  //   ref_theta_ = localize_->pose_.theta;
-  // }
+  else if (end_type_ == kThetaEnd) {
+    ref_theta_ = localize_ -> theta_;
+  }
 }
 
 bool EndCondition::IsSatisfied() {
@@ -123,19 +202,19 @@ bool EndCondition::IsSatisfied() {
         end_state_ = true;
       break;
 
-    // case kDistanceEnd:
-    //   if (end_threshold_ > 0 && localize_->distance_ - ref_distance_ > end_threshold_)
-    //     end_state_ = true;
-    //   else if (end_threshold_ < 0 && localize_->distance_ - ref_distance_ < end_threshold_)
-    //     end_state_ = true;
-    //   break;
+    case kDistanceEnd:
+      if (end_threshold_ > 0 && localize_->distance_ - ref_distance_ > end_threshold_)
+        end_state_ = true;
+      else if (end_threshold_ < 0 && localize_->distance_ - ref_distance_ < end_threshold_)
+        end_state_ = true;
+      break;
 
-    // case kThetaEnd:
-    //   if (end_threshold_ > 0 && localize_->pose_.theta - ref_theta_ > end_threshold_)
-    //     end_state_ = true;
-    //   else if (end_threshold_ < 0 && localize_->pose_.theta - ref_theta_ < end_threshold_)
-    //     end_state_ = true;
-    //   break;
+    case kThetaEnd:
+      if (end_threshold_ > 0 && localize_->theta_ - ref_theta_ > end_threshold_)
+        end_state_ = true;
+      else if (end_threshold_ < 0 && localize_->theta_ - ref_theta_ < end_threshold_)
+        end_state_ = true;
+      break;
 
     default:
       break;
@@ -154,7 +233,7 @@ void DrivingManager::Update() {
   }
 
   DrivingParam& curr_param = driving_params_.front();
-  if (!curr_param.is_started) {
+  if (!curr_param.is_started) {//true
     SetMoveParam(curr_param);
     SetEndParam(curr_param);
     curr_param.is_started = true;
@@ -191,6 +270,10 @@ void DrivingManager::SetMoveParam(DrivingParam& param) {
   switch (move_type) {
     case kTraceLeftEdge:
     case kTraceRightEdge:
+    case kRightcurve:
+    case kLeftcurve:
+    case kTraceBlueLeftEdge:
+    case kTraceBlueRightEdge:
       line_tracer_->SetParam(move_type, base_power, gain);
       break;
 
@@ -198,6 +281,8 @@ void DrivingManager::SetMoveParam(DrivingParam& param) {
     case kGoBackward:
     case kRotateLeft:
     case kRotateRight:
+    case kRotateLeft_No_R:
+    case kRotateRight_No_L:
       basic_driver_->SetParam(move_type, base_power);
       break;
 
@@ -220,9 +305,16 @@ void DrivingManager::Drive(DrivingParam& param) {
   switch (move_type) {
     case kTraceLeftEdge:
     case kTraceRightEdge:
+    case kRightcurve:
+    case kLeftcurve:
       line_tracer_->Run();
       break;
 
+    case kTraceBlueLeftEdge:
+    case kTraceBlueRightEdge:
+      line_tracer_->Blue_Run();
+      break;
+        
     case kGoForward:
     case kGoBackward:
     case kRotateLeft:

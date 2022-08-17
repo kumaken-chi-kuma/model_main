@@ -10,7 +10,6 @@ class MotorIo {
   void Update();
   void SetWheelsPower(int8_t power_l, int8_t power_r);
   void StopWheels(bool brake);
-  void TestRun();
   void TurnLeft();
 
   int32_t counts_l_;
@@ -28,16 +27,12 @@ class SensorIo {
   ~SensorIo();
   void Update();
 
-  bool touch_sensor_pressed_;
-  bool back_button_pressed_;
+  bool enter_button_pressed_;
+  bool left_button_pressed_;
+  bool right_button_pressed_;
   rgb_raw_t color_rgb_raw_;
+  int16_t ultrasonic_sensor_distance_;
 };
 
-class Camera {
- public:
-  Camera();
-  ~Camera();
-  void Update();
-};
 
 #endif  // ETRC22_DEVICE_IO_H_

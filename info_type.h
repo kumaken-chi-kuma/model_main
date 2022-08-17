@@ -29,10 +29,16 @@ enum Color {
 enum Move {
   kTraceLeftEdge = 0,
   kTraceRightEdge,
+  kTraceBlueLeftEdge,
+  kTraceBlueRightEdge,
+  kRightcurve,
+  kLeftcurve,
   kGoForward,
   kGoBackward,
   kRotateLeft,
   kRotateRight,
+  kRotateLeft_No_R,
+  kRotateRight_No_L,
   kStopWheels,
   kInvalidMove,
 };
@@ -57,8 +63,8 @@ struct DrivingParam {
   End end_type;
   Color end_color;
   float end_threshold;
-  bool is_started;
-  bool is_finished;
+  bool is_started = false; 
+  bool is_finished = false;
 };
 
 #endif  // ETRC22_INFO_TYPE_H_

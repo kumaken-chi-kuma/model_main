@@ -3,11 +3,11 @@
 
 #include "info_type.h"
 
-class BingoAgent {
+class Cleaning {
  public:
-  BingoAgent(bool kLcourse);
-  ~BingoAgent();
-  void SolveBingo();
+  Cleaning(bool kLcourse);
+  ~Cleaning();
+  void SolveClean();
 };
 
 #endif  // ETRC22_GAME_PLAY_H_

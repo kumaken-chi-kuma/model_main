@@ -1,4 +1,4 @@
-APPL_CXXOBJS += device_io.o etrc_info.o utils.o driving.o test_runner.o game_play.o state_manager.o
+APPL_CXXOBJS += device_io.o etrc_info.o utils.o driving.o  game_play.o state_manager.o
 
 SRCLANG := c++
 
