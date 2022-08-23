@@ -497,6 +497,62 @@ void ParamStore::AddPlaceParam(Robot* robot, Circle* next_circle, Direction next
   }
 }
 
+RouteStore::RouteStore(BingoArea* bingo_area, RouteSearch* route_search)
+    : bingo_area_(bingo_area), route_search_(route_search) {
+}
+
+void RouteStore::SaveMovingRoute(Circle* goal_circle) {
+  Circle* curr_circle = bingo_area_->robot_.circle;
+  Circle* back_circle = NULL;
+  // char str[32] = {};
+  //test_str.push_back(&goal_circle->id);
+
+  char str[kRouteCharNum] = {};
+  for (int i = 0; i < kRouteCharNum - 2; ++i) {
+    str[i] = curr_circle->id;
+    back_circle = curr_circle;
+    curr_circle = curr_circle->prev;
+    if (curr_circle->id == goal_circle->id) {
+      str[i + 1] = curr_circle->id;
+      str[i + 2] = '\0';
+      break;
+    }
+  }
+  char* route = new char(strlen(str) + 1);
+  strcpy(route, str);
+  routes_.push_back(route);
+  syslog(LOG_NOTICE, route);
+
+  if (goal_circle->id == '0')
+    route_search_->reverse_circle_ = NULL;
+  else
+    route_search_->reverse_circle_ = back_circle;
+}
+
+void RouteStore::SaveCarryRoute(Circle* goal_circle) {
+  Circle* curr_circle = bingo_area_->robot_.circle;
+  Circle* back_circle = NULL;
+
+  char str[kRouteCharNum] = {};
+  for (int i = 0; i < kRouteCharNum - 3; ++i) {
+    str[i] = curr_circle->id;
+    back_circle = curr_circle;
+    curr_circle = curr_circle->prev;
+    if (curr_circle->id == goal_circle->id) {
+      str[i + 1] = curr_circle->id;
+      str[i + 2] = back_circle->id;
+      str[i + 3] = '\0';
+      break;
+    }
+  }
+  char* route = new char(strlen(str) + 1);
+  strcpy(route, str);
+  routes_.push_back(route);
+  syslog(LOG_NOTICE, route);
+
+
+}
+
 Cleaning::Cleaning(bool kLcourse) {
 }
 
