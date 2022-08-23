@@ -199,7 +199,6 @@ double PurePursuit::calc_distance(double point_x, double point_y) {
 }
 
 std::tuple<int, double> PurePursuit::search_target_index() {
-  // int ind;
   if (pre_point_index == INT_MAX) {
     std::list<int> d;
 
