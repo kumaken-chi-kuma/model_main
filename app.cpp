@@ -25,7 +25,9 @@ DrivingManager* driving_manager;
 TimeAttacker* time_attacker;
 BonusGetter* bonus_getter;
 Cleaning* cleaning;
+ParamMaker* param_maker;
 StateManager* state_manager;
+
 
 static void initialize() {
   motor_io = new MotorIo();
@@ -43,12 +45,14 @@ static void initialize() {
   time_attacker = new TimeAttacker(driving_manager, kLcourse);
   bonus_getter = new BonusGetter(driving_manager, kLcourse);
   cleaning = new Cleaning(kLcourse);
+  param_maker = new ParamMaker(kLcourse);
   state_manager = new StateManager(time_attacker, bonus_getter);
 }
 
 static void finalize() {
   delete state_manager;
   delete cleaning;
+  delete param_maker;
   delete bonus_getter;
   delete time_attacker;
   delete driving_manager;
@@ -117,6 +121,6 @@ void update_info_task(intptr_t unused) {
 }
 
 void solve_bingo_task(intptr_t unused) {
-  cleaning->SolveClean();
+  cleaning->StoreAllRoute();
   ext_tsk();
 }

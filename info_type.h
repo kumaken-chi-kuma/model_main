@@ -58,7 +58,8 @@ enum End {
   kColorEnd = 0,
   kDistanceEnd,
   kThetaEnd,
-  kInvalidEnd
+  kTimeEnd,
+  kInvalidEnd,
 };
 
 struct DrivingParam {
@@ -70,6 +71,7 @@ struct DrivingParam {
   float end_threshold;
   bool is_started = false; 
   bool is_finished = false;
+  bool is_arm_down = true;
 };
 
 #endif  // ETRC22_INFO_TYPE_H_

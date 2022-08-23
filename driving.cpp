@@ -243,7 +243,9 @@ bool EndCondition::IsSatisfied() {
       else if (end_threshold_ < 0 && localize_->theta_ - ref_theta_ < end_threshold_)
         end_state_ = true;
       break;
+    case kTimeEnd:
 
+      break;
     default:
       break;
   }
