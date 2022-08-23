@@ -13,9 +13,12 @@ bool kLcourse = true;
 MotorIo* motor_io;
 SensorIo* sensor_io;
 Luminous* luminous;
+PurePursuit* pure_pursuit;
 Localize* localize;
+LowPass* low_pass;
 WheelsControl* wheels_control;
 BasicDriver* basic_driver;
+PursuitDriver* pursuit_driver;
 LineTracer* line_tracer;
 EndCondition* end_condition;
 DrivingManager* driving_manager;
@@ -28,12 +31,15 @@ static void initialize() {
   motor_io = new MotorIo();
   sensor_io = new SensorIo();
   luminous = new Luminous(sensor_io);
+  pure_pursuit = new PurePursuit(motor_io);
   localize = new Localize(motor_io);
+  low_pass = new LowPass(motor_io);
   wheels_control = new WheelsControl(motor_io);
-  basic_driver = new BasicDriver(wheels_control);
+  basic_driver = new BasicDriver(wheels_control, low_pass);
+  pursuit_driver = new PursuitDriver(wheels_control, pure_pursuit);
   line_tracer = new LineTracer(wheels_control, luminous);
   end_condition = new EndCondition(luminous, localize);
-  driving_manager = new DrivingManager(basic_driver, line_tracer, end_condition);
+  driving_manager = new DrivingManager(basic_driver, pursuit_driver, line_tracer, end_condition);
   time_attacker = new TimeAttacker(driving_manager, kLcourse);
   bonus_getter = new BonusGetter(driving_manager, kLcourse);
   cleaning = new Cleaning(kLcourse);
@@ -48,9 +54,12 @@ static void finalize() {
   delete driving_manager;
   delete end_condition;
   delete line_tracer;
+  delete pursuit_driver;
   delete basic_driver;
   delete wheels_control;
+  delete low_pass;
   delete localize;
+  delete pure_pursuit;
   delete luminous;
   delete sensor_io;
   delete motor_io;
@@ -60,16 +69,6 @@ void main_task(intptr_t unused) {
   initialize();
   sta_cyc(UPDATE_INFO_CYC);
 
-/*
- while (true) {
-   if(ev3_button_is_pressed(button_t LEFT_BUTTON)){
-    break;
-    }
-    else if (ev3_button_is_pressed(button_t RIGHT_BUTTON)){
-      kLcourse = false;
-    }
-  }
-*/
   while (true) {
     if (sensor_io->left_button_pressed_) break;
      else if (sensor_io->right_button_pressed_) {
@@ -79,17 +78,12 @@ void main_task(intptr_t unused) {
     tslp_tsk(TASK_INTERVAL_DT_MS*1000U);
   }
 
-  // char str[264];
-  // sprintf(str, "%s", kLcourse);
-  // syslog(LOG_NOTICE, str);
-
   tslp_tsk(TASK_INTERVAL_DT_MS*500000U);
 
   while (true) {
     if (sensor_io->ultrasonic_sensor_distance_ > START_URLTRASONIC_DIST_THRESHOLD) break;
     tslp_tsk(TASK_INTERVAL_DT_MS*1000U);
   }
-
 
   tslp_tsk(START_INTERVAL_DT_MS*1000U);
 
@@ -118,7 +112,7 @@ void update_info_task(intptr_t unused) {
   motor_io->Update();
   sensor_io->Update();
   luminous->Update();
-  // localize->Update();
+  low_pass->CountsLowPass();
   ext_tsk();
 }
 

@@ -61,6 +61,7 @@ SensorIo::SensorIo()
   ev3_sensor_config(EV3_PORT_1, TOUCH_SENSOR);
   ev3_sensor_config(EV3_PORT_2, COLOR_SENSOR);
   ev3_sensor_config(EV3_PORT_3, ULTRASONIC_SENSOR);
+  ev3_motor_set_power(EV3_PORT_A, 20); //arm motor
 }
 
 SensorIo::~SensorIo() {

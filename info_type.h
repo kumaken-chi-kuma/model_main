@@ -10,9 +10,9 @@ struct Rgb {
 };
 
 struct Hsv {
-  float h;
-  float s;
-  float v;
+  int h;
+  int s;
+  int v;
 };
 
 enum Color {
@@ -33,6 +33,8 @@ enum Move {
   kTraceBlueRightEdge,
   kRightcurve,
   kLeftcurve,
+  kPursuitLeft,
+  kPursuitRight,
   kGoForward,
   kGoBackward,
   kRotateLeft,
@@ -41,6 +43,9 @@ enum Move {
   kRotateRight_No_L,
   kStopWheels,
   kInvalidMove,
+  kRotateLeftBonus,
+  kRotateRightBonus,
+  kStayM
 };
 
 struct Gain {
@@ -66,5 +71,59 @@ struct DrivingParam {
   bool is_started = false; 
   bool is_finished = false;
 };
+
+// enum BlockId {
+//     kK1 = 0,
+//     kR1,
+//     kR2,
+//     kY1,
+//     kY2,
+//     kB1,
+//     kB2,
+//     kG1,
+//     kG2,
+//     kInvalidBlockId,
+//     kBlockIdNum
+// };
+
+// enum Direction {
+//     kEast = 0,
+//     kNorthEast,
+//     kNorth,
+//     kNorthWest,
+//     kWest,
+//     kSouthWest,
+//     kSouth,
+//     kSouthEast,
+//     kInvalidDirection,
+//     kDirectionNum,
+// };
+
+// struct Circle {
+//   char id;
+//   int x;
+//   int y;
+//   char color;
+//   Circle* next[kNextToMax];
+//   Block* block;
+//   int cost;
+//   Circle* prev;
+//   bool queue_added;
+//   int next_num;
+//   Block* initial_block;
+// };
+
+// struct Block {
+//   BlockId id;
+//   char color;
+//   Circle* circle;
+//   Circle* target;
+//   bool carrying_completed;
+// };
+
+// struct Robot {
+//   Circle* circle;
+//   Direction direction;
+// };
 
 #endif  // ETRC22_INFO_TYPE_H_

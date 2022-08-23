@@ -1,11 +1,8 @@
 #include "state_manager.h"
 
-const int kLcourseParamsNum = 3;
+const int kLcourseParamsNum = 1;
 const DrivingParam kLcourseTimeAttackParams[kLcourseParamsNum] = {
-  {kTraceRightEdge, 80, {0.22, 0.013, 0.05}, kDistanceEnd, kInvalidColor, 1000, false},
-  { kTraceLeftEdge, 45, { 0.22, 0, 0 }, kColorEnd, kBlue, 0},
-  // { kTraceRightEdge, 50, { 0.5, 0, 0 }, kDistanceEnd, kInvalidColor, 1000, false},
-  {kStopWheels, 0, { 0, 0, 0 }, kInvalidEnd, kInvalidColor, 0, false},
+  {kTraceLeftEdge, 45, {0.22, 0.013, 0.05}, kColorEnd, kBlue, 0},
 };
 
 const int kRcourseParamsNum = 2;
@@ -59,7 +56,6 @@ void StateManager::Update() {
     case kGetBonus:
       GetBonus();
       break;
-
 
     default:
       break;

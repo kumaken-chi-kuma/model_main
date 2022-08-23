@@ -22,11 +22,12 @@ class LowPass {
   void CountsLowPass();
   float counts_lowpassed_l_ = 0;
   float counts_lowpassed_r_ = 0;
-  int counts_l_;
-  int counts_r_;
 
  private:
   MotorIo* motor_io_;
+
+  int counts_l_;
+  int counts_r_;
 
   float Ad[2][2] = {{1.044 ,-0.5447},{0.5, 0}};
   float Bd[2][1] = {{0.5}, {0}};
@@ -38,8 +39,6 @@ class LowPass {
   float x_kn_r[2][1] = {};
   float y_k_l = 0;
   float y_k_r = 0;
-
-
 };
 
 #endif  // ETRC22_UTILS_H_

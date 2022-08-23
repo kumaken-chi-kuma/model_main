@@ -13,30 +13,25 @@ void PidControl::SetGain(float kp, float ki, float kd) {
 }
 
 float PidControl::CalcMv(float target_val, float current_val) {
-  static float error[2];//add
-  static float integral; //add
-  float p, i, d;//add
+  static float error[2];
+  static float integral; 
+  float p, i, d;
   static float curr_error[2];
- // static float mt[2];//add
-  //float mv_last;//add
-  //float mv_now;//add
   curr_error[0] = curr_error[1];
   curr_error[1] = current_val;
-  error[0] = error[1];//add
-  error[1] = target_val - current_val;//add
-  integral += (error[1] + error[0])/2.0*dt_;//add
-  p = kp_ * error[0];//add
-  i = ki_ * integral ;//add
-  d = kd_ * (error[1]-error[0])/dt_;//add
-  //mt[0] = mt[1];//add
-  float mv = p + i + d;//add
-
+  error[0] = error[1];
+  error[1] = target_val - current_val;
+  integral += (error[1] + error[0])/2.0*dt_;
+  p = kp_ * error[0];
+  i = ki_ * integral;
+  d = kd_ * (error[1]-error[0])/dt_;
+  float mv = p + i + d;
 
   return mv;
 }
 
-LowPass::LowPass(MotorIo* motor_io){}
-
+LowPass::LowPass(MotorIo* motor_io) : motor_io_(motor_io){
+}
 
 void LowPass::CountsLowPass(){
   counts_l_ = motor_io_ -> counts_l_;

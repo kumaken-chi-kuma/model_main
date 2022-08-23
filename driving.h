@@ -18,16 +18,63 @@ class WheelsControl {
 
 class BasicDriver {
  public:
-  BasicDriver(WheelsControl* wheels_control);
+  BasicDriver(WheelsControl* wheels_control, LowPass* low_pass);
   ~BasicDriver();
   void SetParam(Move move_type, int8_t base_power);
+  void Run();
+  void Stop();
+  void PidControlVelocity();
+
+ private:
+  WheelsControl* wheels_control_;
+  MotorIo* motor_io_;
+  LowPass* low_pass_;
+  Move move_type_;
+  int8_t base_power_;
+  float counts_l_now = 0;
+  float counts_r_now = 0;
+  int power_l;
+  int power_r;
+
+  /////////////////PIDcontrol/////////////////
+  float counts_l_last = 0;
+  float counts_r_last = 0;
+  float velocity_target_l = 0;
+  float velocity_target_r = 0;
+  float velocity_l = 0;
+  float velocity_r = 0;
+  float delta_time = 0.05;
+  float error_l = 0;
+  float error_r = 0;
+  float error_last_l = 0;
+  float error_last_r = 0;
+  float error_integral_l = 0;
+  float error_integral_r = 0;
+  float error_differential_l = 0;
+  float error_differential_r = 0;
+  float gain_velocity_control[2][3] = {{0.1, 0.22, 0}, {0.1, 0.22, 0}};
+  /////////////////PIDcontrol/////////////////
+};
+
+class PursuitDriver {
+ public:
+  PursuitDriver(WheelsControl* wheels_control, PurePursuit* pure_pursuit);
+  ~PursuitDriver();
+  void SetParam(Move move_type, int base_power);
   void Run();
   void Stop();
 
  private:
   WheelsControl* wheels_control_;
+  PurePursuit* pure_pursuit_;
   Move move_type_;
-  int8_t base_power_;
+  double gain_kv_r = 0.057; 
+  double gain_kv_l = 0.05; 
+  double gain_kt_r = 6.5; 
+  double gain_kt_l = 6.5; 
+  double p_power_l;
+  double p_power_r;
+  int base_power_;
 };
 
 class LineTracer {
@@ -36,8 +83,7 @@ class LineTracer {
   ~LineTracer();
   void SetParam(Move move_type, int8_t base_power, Gain gain);
   void Run();
-  void Blue_Run();//paku
-  void Vgosa();//matu
+  void Blue_Run();
   void Stop();
 
  private:
@@ -45,18 +91,10 @@ class LineTracer {
   Luminous* luminous_;
   Move move_type_;
   int8_t base_power_;
-  const int8_t line_trace_threshold = 40;
-  const int16_t line_trace_blue_threshold = 160;
+  const int16_t line_trace_threshold = 60;
+  const int16_t line_trace_blue_threshold = 130;
   PidControl* pid_control_;
-  ////matu////
-  int curr_in = 0;
-  float mv;
-  float diff[10000]= {};
-  float mv_c[10000]= {};
-  uint64_t secs[100000] = {};
-  uint64_t now_time = 0;
-  ////matu////
-};
+  };
 
 class EndCondition {
  public:
@@ -73,12 +111,12 @@ class EndCondition {
   bool end_state_;
   float ref_distance_;
   float ref_theta_;
-  int count=0;//matu
 };
 
 class DrivingManager {
  public:
-  DrivingManager(BasicDriver* basic_driver, LineTracer* line_tracer, EndCondition* end_condition);
+  DrivingManager(BasicDriver* basic_driver, PursuitDriver* pursuit_driver, LineTracer* line_tracer, EndCondition* end_condition);
+  // DrivingManager(BasicDriver* basic_driver, LineTracer* line_tracer, EndCondition* end_condition);
   void Update();
   void AddDrivingParam(DrivingParam param);
   bool DrivingParamsEmpty();
@@ -88,6 +126,7 @@ class DrivingManager {
   void SetEndParam(DrivingParam& param);
   void Drive(DrivingParam& param);
   BasicDriver* basic_driver_;
+  PursuitDriver* pursuit_driver_;
   LineTracer* line_tracer_;
   EndCondition* end_condition_;
   std::list<DrivingParam> driving_params_;
